@@ -5,7 +5,7 @@
 # Enumeration
 We start off with some standard enumeration, with nmap
 
-```bash
+```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
 └─$ sudo nmap -sSCV -p- 10.10.11.171 -T4
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-12 20:50 +08

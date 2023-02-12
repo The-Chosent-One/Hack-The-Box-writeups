@@ -26,6 +26,7 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 713.11 seconds
 ```
+
 Looks like there's not much running, just a http service running on the machine.
 
 Visiting the site shows us this:
@@ -104,14 +105,17 @@ Requests/sec.: 15.78561
 Adding those subdomains into my `/etc/hosts` file, and visiting those sites show:
 
 `dev.snippet.htb`
+
 ![dev snippet htb](https://user-images.githubusercontent.com/57739806/218316168-f3d3b9c5-f0f3-49f1-b621-16a87fbcbc8d.png)
 
 `mail.snippet.htb`
+
 ![mail snippet htb](https://user-images.githubusercontent.com/57739806/218316188-e44456a1-3429-464e-8572-d4c1a56a168f.png)
 
 Now it's time for more endpoint enumeration :D
 
 Endpoints of `dev.snippet.htb`:
+
 ```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
 └─$ gobuster dir -u http://dev.snippet.htb -w /usr/share/wordlists/dirb/common.txt -t 30
@@ -140,6 +144,7 @@ Progress: 4614 / 4615 (99.98%)==================================================
 ```
 
 Endpoints of `mail.snippet.htb`:
+
 ```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
 └─$ gobuster dir -u http://mail.snippet.htb -w /usr/share/wordlists/dirb/common.txt -t 30 -b 403,404
@@ -197,9 +202,11 @@ It looks like all the endpoints of `snippet.htb`, although there are some we did
 Using burpsuite, and modifying the GET request to a POST request, we're met with an error:
 ![First obstacle](https://user-images.githubusercontent.com/57739806/218317369-f4faacf6-843f-48be-af59-975eee33495c.png)
 
+
 A bit of googling, it looks like I need a `X-CSRF-Token` header with the appropriate value to be able to make POST requests.
 We already have a valid POST request from the site, the login page, so I modified that request instead and got a successful result:
 ![Successful post request](https://user-images.githubusercontent.com/57739806/218317557-65a2ab98-e7b2-485d-a9f7-d6fb4ca26f53.png)
+
 
 It's giving us a 400 error with an error message of "Missing arguments", so maybe we need to figure out what arguments the endpoint accepts?
 Here, I use `wfuzz` to brute-force the possible values the endpoint might accept, copying over the relevant headers.

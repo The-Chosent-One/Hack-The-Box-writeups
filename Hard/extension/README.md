@@ -1,6 +1,6 @@
 
 ![image](https://user-images.githubusercontent.com/57739806/218311539-fb920584-7f00-4e6b-813a-00dbf09d7892.png)
-> This is in the Hard category of boxes in HTB
+This is in the Hard category of boxes in HTB
 
 # Enumeration
 > Nmap enumeration
@@ -122,6 +122,8 @@ Adding those subdomains into my `/etc/hosts` file, and visiting those sites show
 
 Now it's time for more endpoint enumeration :D
 
+___
+
 Endpoints of `dev.snippet.htb`:
 
 ```
@@ -207,7 +209,7 @@ I got stuck for a while, until I decided to look into the source code of `snippe
 const Ziggy = {"url":"http:\/\/snippet.htb","port":null,"defaults":{},"routes":{"ignition.healthCheck":{"uri":"_ignition\/health-check","methods":["GET","HEAD"]},"ignition.executeSolution":{"uri":"_ignition\/execute-solution","methods":["POST"]},"ignition.shareReport":{"uri":"_ignition\/share-report","methods":["POST"]},"ignition.scripts":{"uri":"_ignition\/scripts\/{script}","methods":["GET","HEAD"]},"ignition.styles":{"uri":"_ignition\/styles\/{style}","methods":["GET","HEAD"]},"dashboard":{"uri":"dashboard","methods":["GET","HEAD"]},"users":{"uri":"users","methods":["GET","HEAD"]},"snippets":{"uri":"snippets","methods":["GET","HEAD"]},"snippets.view":{"uri":"snippets\/{id}","methods":["GET","HEAD"]},"snippets.update":{"uri":"snippets\/update\/{id}","methods":["GET","HEAD"]},"api.snippets.update":{"uri":"snippets\/update\/{id}","methods":["POST"]},"api.snippets.delete":{"uri":"snippets\/delete\/{id}","methods":["DELETE"]},"snippets.new":{"uri":"new","methods":["GET","HEAD"]},"users.validate":{"uri":"management\/validate","methods":["POST"]},"admin.management.dump":{"uri":"management\/dump","methods":["POST"]},"register":{"uri":"register","methods":["GET","HEAD"]},"login":{"uri":"login","methods":["GET","HEAD"]},"password.request":{"uri":"forgot-password","methods":["GET","HEAD"]},"password.email":{"uri":"forgot-password","methods":["POST"]},"password.reset":{"uri":"reset-password\/{token}","methods":["GET","HEAD"]},"password.update":{"uri":"reset-password","methods":["POST"]},"verification.notice":{"uri":"verify-email","methods":["GET","HEAD"]},"verification.verify":{"uri":"verify-email\/{id}\/{hash}","methods":["GET","HEAD"]},"verification.send":{"uri":"email\/verification-notification","methods":["POST"]},"password.confirm":{"uri":"confirm-password","methods":["GET","HEAD"]},"logout":{"uri":"logout","methods":["POST"]}}};
 ...
 ```
-
+___
 
 It looks like all the endpoints of `snippet.htb`, although there are some we didn't get while enumerating. Looking through these endpoints, `management/dump` looks interesting as we can potentially get credentials from it.
 
@@ -219,8 +221,6 @@ Using burpsuite, and modifying the GET request to a POST request, we're met with
 A bit of googling, it looks like I need a `X-CSRF-Token` header with the appropriate value to be able to make POST requests.
 We already have a valid POST request from the site, the login page, so I modified that request instead and got a successful result:
 ![Successful post request](https://user-images.githubusercontent.com/57739806/218317557-65a2ab98-e7b2-485d-a9f7-d6fb4ca26f53.png)
-
-
 
 
 It's giving us a 400 error with an error message of "Missing arguments", so maybe we need to figure out what arguments the endpoint accepts?

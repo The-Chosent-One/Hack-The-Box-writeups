@@ -337,3 +337,14 @@ juliana@snippet.htb:password123
 Credentials obtained!
 
 ***
+After logging in with the credentials and exploring the page, it just seems to be a page for storing code snippets, hence the name of the site. 
+There seems to be only one snippet which can be viewed.
+![First snippet](https://user-images.githubusercontent.com/57739806/218642342-4a7c3063-b99b-41aa-a6d9-a19a75c04fec.png)
+
+Looking at the url, however, `http://snippet.htb/snippets/1`, it looks like accessing the snippet is done directly via the endpoints. 
+Maybe this page is succeptible to a [IDOR](https://portswigger.net/web-security/access-control/idor) vulnerability? 
+
+Changing the url to `http://snippet.htb/snippets/2` does indeed show us another snippet we shouldn't have access to:
+![Second snippet](https://user-images.githubusercontent.com/57739806/218643201-6d8f4cf6-9bcc-47a3-ba4d-d90846b7a25a.png)
+
+Although we have access to it, looks like it's private, so the contents can't be viewed. 

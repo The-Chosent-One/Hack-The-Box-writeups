@@ -281,8 +281,7 @@ After obtaining the credentials, it's time to try cracking the password hashes. 
 ```
 
 
-
-Writing a simply python script to do the cleaning up for me (process.py), 
+Writing a simply python script to do the cleaning up for me, and running it,  
 ```py
 l = eval(open("out.txt").read())
 s = "\n".join(i['email'] + ':' + i['password'] for i in l)
@@ -291,17 +290,8 @@ with open("hash.txt", "w") as file:
 ```
 
 
-
-And then running it, 
-```
-┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
-└─$ python3 process.py
-```
-
-
-
 Having the hashes in a format suitable for John the Ripper, we just need to figure out what hash type the passwords are.
-Grabbing a random hash and using `haiti`, 
+Grabbing a random hash and using `haiti`, it looks like it's just SHA256. Using that, we're able to start cracking hashes.
 ```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
 └─$ haiti 2a04a431a6509cd54a374a2f14df092b46520d846d4848d86d7c9c6ec82f5322
@@ -320,12 +310,7 @@ PANAMA [JtR: dynamic_320]
 BLAKE2-256
 MD6-256
 Umbraco HMAC-SHA1 [HC: 24800]
-```
 
-
-
-Looks like it's just SHA256, and with that, it's time to crack hashes.
-```
 ┌──(The-Chosent-One㉿kali)-[~/Desktop/extension]
 └─$ john --format=raw-sha256 hash.txt -w /usr/share/wordlists/rockyou.txt
 Warning: invalid UTF-8 seen reading /usr/share/wordlists/rockyou.txt
@@ -350,3 +335,5 @@ juliana@snippet.htb:password123
 
 
 Credentials obtained!
+
+***

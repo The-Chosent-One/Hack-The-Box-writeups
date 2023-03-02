@@ -220,7 +220,7 @@ Using burpsuite, and modifying the GET request to a POST request, we're met with
 
 A bit of googling, it looks like I need a `X-CSRF-Token` header with the appropriate value to be able to make POST requests.
 We already have a valid POST request from the site, the login page, so I modified that request instead and got a successful result:
-![Successful post request](https://user-images.githubusercontent.com/57739806/218317557-65a2ab98-e7b2-485d-a9f7-d6fb4ca26f53.png)
+![Successful post request](https://user-images.githubusercontent.com/57739806/222411987-07b9bf6f-ec8a-4a6d-a028-f2b76571983f.png)
 
 
 It's giving us a 400 error with an error message of "Missing arguments", so maybe we need to figure out what arguments the endpoint accepts?
@@ -266,7 +266,7 @@ ID           Response   Lines    Word       Chars       Payload
 ```
 
 Looks like there are multiple values accepted, and testing each one in burpsuite shows the "users" value dumping all user credentials.
-![User creds obtained](https://user-images.githubusercontent.com/57739806/218318727-3a2bc03d-8217-496f-848e-dd3f8f4c0853.png)
+![User creds obtained](https://user-images.githubusercontent.com/57739806/222431620-465e728b-b65a-4955-9f48-b6a84540bc5c.png)
 
 
 
@@ -351,7 +351,7 @@ Although we have access to it, looks like it's private, so the contents can't be
 
 From here, I played around with snippets for a while, without knowing what to do. I created new snippets and edited them, and observed the HTTP requests from the site.
 I noticed that editing a snippet with id 3 would just send a POST request to `http://snippet.htb/snippets/update/3`, with the contents of the edited snippet.
-![HTTP request for editing a snippet](https://user-images.githubusercontent.com/57739806/218644134-9c2698fb-700e-4e4e-a1ea-587097a5467c.png)
+![HTTP request for editing a snippet](https://user-images.githubusercontent.com/57739806/222436210-6e51b4b5-4774-4890-8696-484949145fa8.png)
 
 With that, I tried modifying the request to update the second snippet directly, the one we wanted to view... and it worked!
 Navigating back to the snippet I wanted to view, 
